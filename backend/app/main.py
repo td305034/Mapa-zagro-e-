@@ -1,9 +1,13 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
-from app.database import engine
 
-app = FastAPI(title="Mapa zagrożeń API")
+from app.database import engine
+from app.routers.risks import router as risks_router
+
+app = FastAPI(title="Risk Map API")
+
+app.include_router(risks_router)
 
 @app.get("/health")
 def health_check():

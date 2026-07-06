@@ -8,7 +8,7 @@ Run manually after `alembic upgrade head`:
 import logging
 
 from app.database import SessionLocal
-from app.models import Zagrozenie
+from app.models import Risk
 from app.sources import load_all
 
 logging.basicConfig(level=logging.INFO)
@@ -21,15 +21,15 @@ def seed() -> None:
         logger.warning("No records returned by sources, nothing to seed.")
         return
 
-    sources = {r["zrodlo"] for r in records}
+    sources = {r["source"] for r in records}
     db = SessionLocal()
     try:
         deleted = (
-            db.query(Zagrozenie)
-            .filter(Zagrozenie.zrodlo.in_(sources))
+            db.query(Risk)
+            .filter(Risk.source.in_(sources))
             .delete(synchronize_session=False)
         )
-        db.bulk_insert_mappings(Zagrozenie, records)
+        db.bulk_insert_mappings(Risk, records)
         db.commit()
         logger.info("Removed %d old record(s), inserted %d new record(s).", deleted, len(records))
     finally:

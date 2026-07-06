@@ -9,29 +9,30 @@ import pandas as pd
 import requests
 from openlocationcode import openlocationcode as olc
 
+from app.models import RiskStatus
 from app.sources.base import DataSource
 
 logger = logging.getLogger(__name__)
 
 # Approximate centroid of Gmina Reńska Wieś (powiat kędzierzyńsko-kozielski),
 # where every location in the sheet lies. Used as the reference point to
-# recover the shortened Plus Codes found in the "Koordynaty" column.
+# recover the shortened Plus Codes found in the coordinates column.
 REFERENCE_LAT = 50.35
 REFERENCE_LNG = 18.17
 
 DEFAULT_WEIGHT = 1
-VERIFIED_STATUS = "zweryfikowane"
+VERIFIED_STATUS = RiskStatus.VERIFIED.value
 
 _PLACE_COORD_RE = re.compile(r"!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)")
 _MAP_VIEW_COORD_RE = re.compile(r"@(-?\d+\.\d+),(-?\d+\.\d+)")
 
-_COLUMNS = ["lp", "kategoria", "obiekt", "solectwo", "adres", "koordynaty", "rodzaj_zagrozenia"]
+_COLUMNS = ["record_number", "main_category", "object_name", "village", "address", "coordinates", "risk_type"]
 
 
-class ExcelMapaZagrozenSource(DataSource):
+class ExcelRiskMapSource(DataSource):
     """Adapter for the seed `Mapa zagrożeń.xlsx` file."""
 
-    name = "Mapa zagrożeń.xlsx"
+    name = "Risk Map.xlsx"
 
     def __init__(self, file_path: str, sheet_name: str = "Arkusz1"):
         self.file_path = file_path
@@ -43,39 +44,39 @@ class ExcelMapaZagrozenSource(DataSource):
     def clean(self, raw: pd.DataFrame) -> pd.DataFrame:
         df = raw.copy()
         df.columns = _COLUMNS
-        df = df.drop(columns=["lp"])
+        df = df.drop(columns=["record_number"])
         for col in df.columns:
             df[col] = df[col].apply(lambda v: v.strip() if isinstance(v, str) else v)
-        df = df[df["kategoria"].notna()]
+        df = df[df["main_category"].notna()]
         return df.reset_index(drop=True)
 
     def geocode(self, cleaned: pd.DataFrame) -> pd.DataFrame:
         df = cleaned.copy()
-        coords = df["koordynaty"].apply(self._resolve_coordinates)
+        coords = df["coordinates"].apply(self._resolve_coordinates)
         df["lat"] = coords.apply(lambda c: c[0])
         df["lng"] = coords.apply(lambda c: c[1])
         return df
 
     def map_to_schema(self, geocoded: pd.DataFrame) -> list[dict]:
-        timezone = zoneinfo.ZoneInfo("Europe/Warsaw");
+        timezone = zoneinfo.ZoneInfo("Europe/Warsaw")
         now = datetime.now(tz=timezone)
         records = []
         for row in geocoded.itertuples():
             if pd.isna(row.lat) or pd.isna(row.lng):
-                logger.warning("Skipping row without resolvable coordinates: %s", row.rodzaj_zagrozenia)
+                logger.warning("Skipping row without resolvable coordinates: %s", row.risk_type)
                 continue
-            risk_type = row.rodzaj_zagrozenia
-            if isinstance(row.obiekt, str) and row.obiekt:
-                risk_type = f"{row.obiekt} – {risk_type}"
+            risk_type = row.risk_type
+            if isinstance(row.object_name, str) and row.object_name:
+                risk_type = f"{row.object_name} - {risk_type}"
             records.append({
-                "kategoria_glowna": row.kategoria,
-                "typ_ryzyka": risk_type,
+                "main_category": row.main_category,
+                "risk_type": risk_type,
                 "lat": round(row.lat, 7),
                 "lng": round(row.lng, 7),
-                "waga": DEFAULT_WEIGHT,
-                "zrodlo": self.name,
+                "weight": DEFAULT_WEIGHT,
+                "source": self.name,
                 "status": VERIFIED_STATUS,
-                "data_aktualizacji": now,
+                "updated_at": now,
             })
         return records
 

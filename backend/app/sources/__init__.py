@@ -1,7 +1,7 @@
 import logging
 from pathlib import Path
 
-from app.sources.manager_excel import ExcelMapaZagrozenSource
+from app.sources.manager_excel import ExcelRiskMapSource
 
 logger = logging.getLogger(__name__)
 
@@ -10,7 +10,7 @@ DATA_DIR = Path(__file__).resolve().parent.parent.parent / "data"
 # Single registration point for all data sources. Adding a new source
 # (an API, another file) only means adding an entry here.
 SOURCES = [
-    ExcelMapaZagrozenSource(file_path=str(DATA_DIR / "Mapa zagrożeń.xlsx")),
+    ExcelRiskMapSource(file_path=str(DATA_DIR / "Mapa zagrożeń.xlsx")),
 ]
 
 

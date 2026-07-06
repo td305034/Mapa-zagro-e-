@@ -10,7 +10,7 @@ class DataSource(ABC):
     through the same fixed sequence of steps: load -> clean -> geocode ->
     map_to_schema. Subclasses only implement the individual steps; `run()`
     fixes their order and the shape of the final output (a list of dicts
-    whose keys match the `Zagrozenie` model fields).
+    whose keys match the `Risk` model fields).
     """
 
     name: str = "unknown"

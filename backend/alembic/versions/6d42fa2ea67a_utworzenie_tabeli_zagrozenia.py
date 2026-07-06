@@ -30,7 +30,7 @@ def upgrade() -> None:
     sa.Column('waga', sa.Integer(), nullable=True),
     sa.Column('zrodlo', sa.String(), nullable=True),
     sa.Column('status', sa.String(), nullable=True),
-    sa.Column('data_aktualizacji', sa.DateTime(), nullable=True),
+    sa.Column('data_aktualizacji', sa.DateTime(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###

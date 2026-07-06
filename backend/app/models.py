@@ -1,7 +1,8 @@
 # app/models.py
+from datetime import datetime, timezone
+
 from sqlalchemy import Column, Integer, String, Float, Boolean, DateTime
 from sqlalchemy.orm import declarative_base
-from datetime import datetime
 
 Base = declarative_base()
 
@@ -16,4 +17,4 @@ class Zagrozenie(Base):
     waga = Column(Integer, default=1)
     zrodlo = Column(String)
     status = Column(String, default="niezweryfikowane")
-    data_aktualizacji = Column(DateTime, default=datetime.utcnow)
+    data_aktualizacji = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

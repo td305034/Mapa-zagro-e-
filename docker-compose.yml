@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16
+    container_name: mapa-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: haslo
+      POSTGRES_DB: mapa_zagrozen
+    ports:
+      - "5432:5432"
+    volumes:
+      - mapa_db_data:/var/lib/postgresql/data
+
+volumes:
+  mapa_db_data:

@@ -28,6 +28,7 @@ class Risk(Base):
     main_category = Column(String, nullable=False)
     risk_type = Column(String, nullable=False)
     hazard_category = Column(SQLEnum(HazardCategory), nullable=True)
+    address = Column(String, nullable=True)
     lat = Column(Float, nullable=False)
     lng = Column(Float, nullable=False)
     weight = Column(Integer, default=1)

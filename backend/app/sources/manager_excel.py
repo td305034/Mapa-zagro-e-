@@ -1,5 +1,6 @@
 import logging
 import re
+import time
 from datetime import datetime
 import zoneinfo
 from urllib.parse import parse_qs, unquote, urlparse
@@ -14,9 +15,6 @@ from app.sources.hazard_mapping import get_hazard_category
 
 logger = logging.getLogger(__name__)
 
-# Approximate centroid of Gmina Reńska Wieś (powiat kędzierzyńsko-kozielski),
-# where every location in the sheet lies. Used as the reference point to
-# recover the shortened Plus Codes found in the coordinates column.
 REFERENCE_LAT = 50.35
 REFERENCE_LNG = 18.17
 
@@ -26,9 +24,10 @@ VERIFIED_STATUS = RiskStatus.VERIFIED.value
 _PLACE_COORD_RE = re.compile(r"!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)")
 _MAP_VIEW_COORD_RE = re.compile(r"@(-?\d+\.\d+),(-?\d+\.\d+)")
 
-# "main_category" here is the renamed name of the sheet's
-# "Kategoria obiektu/miejsca" column — kept consistent with the model field
-# name used everywhere else in map_to_schema() below.
+_NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+_NOMINATIM_USER_AGENT = "mapa-zagrozen-kedzierzynsko-kozielski/1.0"
+_NOMINATIM_DELAY_SECONDS = 1.0
+
 _COLUMNS = ["record_number", "main_category", "object_name", "village", "address", "coordinates", "risk_type"]
 
 
@@ -55,9 +54,9 @@ class ExcelRiskMapSource(DataSource):
 
     def geocode(self, cleaned: pd.DataFrame) -> pd.DataFrame:
         df = cleaned.copy()
-        coords = df["coordinates"].apply(self._resolve_coordinates)
-        df["lat"] = coords.apply(lambda c: c[0])
-        df["lng"] = coords.apply(lambda c: c[1])
+        resolved = df.apply(self._resolve_row_coordinates, axis=1)
+        df["lat"] = resolved.apply(lambda c: c[0])
+        df["lng"] = resolved.apply(lambda c: c[1])
         return df
 
     def map_to_schema(self, geocoded: pd.DataFrame) -> list[dict]:
@@ -66,17 +65,15 @@ class ExcelRiskMapSource(DataSource):
         records = []
         for row in geocoded.itertuples():
             if pd.isna(row.lat) or pd.isna(row.lng):
-                logger.warning("Skipping row without resolvable coordinates: %s", row.risk_type)
+                logger.warning(
+                    "Skipping row without resolvable coordinates (Plus Code, "
+                    "link, and address geocoding all failed): %s",
+                    row.risk_type,
+                )
                 continue
 
-            # Map the raw "Rodzaj zagrożenia" text to a HazardCategory BEFORE
-            # it gets combined with object_name below — the mapping keys are
-            # the original sheet values, not the display string.
             hazard_category = get_hazard_category(row.risk_type)
             if hazard_category is None:
-                # Fail fast rather than silently seeding a record with a
-                # missing/incorrect hazard_category. Better to fix the
-                # mapping table than insert bad data into the DB.
                 raise ValueError(
                     f"No hazard_category mapping for risk_type: '{row.risk_type}' "
                     f"(object: {row.object_name!r}, village: {row.village!r})"
@@ -86,10 +83,13 @@ class ExcelRiskMapSource(DataSource):
             if isinstance(row.object_name, str) and row.object_name:
                 risk_type = f"{row.object_name} - {risk_type}"
 
+            address = row.address if isinstance(row.address, str) and row.address.strip() else None
+
             records.append({
                 "main_category": row.main_category,
                 "hazard_category": hazard_category,
                 "risk_type": risk_type,
+                "address": address,
                 "lat": round(row.lat, 7),
                 "lng": round(row.lng, 7),
                 "weight": DEFAULT_WEIGHT,
@@ -98,6 +98,23 @@ class ExcelRiskMapSource(DataSource):
                 "updated_at": now,
             })
         return records
+
+    def _resolve_row_coordinates(self, row: pd.Series) -> tuple[float | None, float | None]:
+        """Try Plus Code / Google Maps link first; fall back to geocoding
+        the text address if those are missing or fail to resolve."""
+        lat, lng = self._resolve_coordinates(row["coordinates"])
+        if lat is not None and lng is not None:
+            return lat, lng
+
+        address = row.get("address")
+        if isinstance(address, str) and address.strip():
+            logger.info(
+                "No Plus Code/link for '%s' — falling back to address geocoding: %s",
+                row.get("risk_type"), address,
+            )
+            return self._resolve_address(address, row.get("village"))
+
+        return None, None
 
     def _resolve_coordinates(self, value) -> tuple[float | None, float | None]:
         if not isinstance(value, str) or not value.strip():
@@ -134,3 +151,32 @@ class ExcelRiskMapSource(DataSource):
         full_code = olc.recoverNearest(code, REFERENCE_LAT, REFERENCE_LNG) if olc.isShort(code) else code
         area = olc.decode(full_code)
         return area.latitudeCenter, area.longitudeCenter
+
+    def _resolve_address(self, address: str, village) -> tuple[float | None, float | None]:
+        query_parts = [address.strip()]
+        if isinstance(village, str) and village.strip():
+            query_parts.append(village.strip())
+        query_parts.append("powiat kędzierzyńsko-kozielski")
+        query_parts.append("Polska")
+        query = ", ".join(query_parts)
+
+        try:
+            response = requests.get(
+                _NOMINATIM_URL,
+                params={"q": query, "format": "json", "limit": 1},
+                headers={"User-Agent": _NOMINATIM_USER_AGENT},
+                timeout=10,
+            )
+            response.raise_for_status()
+            results = response.json()
+        except requests.RequestException:
+            logger.warning("Address geocoding request failed for: %s", query)
+            return None, None
+        finally:
+            time.sleep(_NOMINATIM_DELAY_SECONDS)
+
+        if not results:
+            logger.warning("Address geocoding found no results for: %s", query)
+            return None, None
+
+        return float(results[0]["lat"]), float(results[0]["lon"])

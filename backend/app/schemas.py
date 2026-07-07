@@ -17,6 +17,7 @@ class RiskBase(BaseModel):
     main_category: str
     risk_type: str
     hazard_category: HazardCategory
+    address: str | None = None
     lat: float = Field(ge=49.9, le=50.5, description="Szerokość geograficzna w granicach powiatu")
     lng: float = Field(ge=17.8, le=18.5, description="Długość geograficzna w granicach powiatu")
     weight: int = Field(default=1, ge=1, le=5)

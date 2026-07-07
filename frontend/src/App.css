@@ -90,3 +90,73 @@
   background: transparent;
   border: none;
 }
+
+.risk-marker--verified {
+  border: 2px solid #ffffff;
+}
+
+.risk-marker--unverified {
+  border: 2px dashed #666666;
+}
+
+.risk-popup {
+  min-width: 180px;
+}
+
+.risk-popup-category {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #6b6375;
+  margin-bottom: 4px;
+}
+
+.risk-popup-category-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.risk-popup-type {
+  font-size: 16px;
+  font-weight: 600;
+  color: #08060d;
+  margin: 0 0 2px;
+}
+
+.risk-popup-main-category {
+  font-size: 12px;
+  color: #6b6375;
+  margin: 0 0 8px;
+}
+
+.risk-popup-address {
+  font-size: 13px;
+  color: #6b6375;
+  margin: 0 0 8px;
+}
+
+.risk-popup-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #08060d;
+}
+
+.risk-popup-status-badge {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.risk-popup-source {
+  font-size: 11px;
+  color: #6b6375;
+  margin-top: 6px;
+}

@@ -29,6 +29,11 @@ class RiskBase(BaseModel):
         if not v.strip():
             raise ValueError("Kategoria nie może być pusta")
         return v.strip()
+    
+    @field_validator("lat", "lng")
+    @classmethod
+    def round_coordinates(cls, v):
+        return round(v, 7)
 
 
 class RiskCreate(RiskBase):

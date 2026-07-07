@@ -42,6 +42,7 @@ def create_risk(risk: schemas.RiskCreate, db: Session = Depends(get_db)):
         **risk.model_dump(),
         status=models.RiskStatus.PENDING,
         updated_at=datetime.utcnow(),
+        source="Formularz zgłoszeń",
     )
     db.add(new_risk)
     try:

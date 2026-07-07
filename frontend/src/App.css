@@ -4,15 +4,6 @@
   min-height: 100svh;
 }
 
-.app-sidebar {
-  flex: 0 0 280px;
-  padding: 16px;
-  border-right: 1px solid var(--border);
-  box-sizing: border-box;
-  overflow-y: auto;
-  text-align: left;
-}
-
 .app-map {
   flex: 1;
   position: relative;
@@ -93,4 +84,9 @@
   height: 12px;
   border-radius: 50%;
   flex-shrink: 0;
+}
+
+.custom-cluster-icon {
+  background: transparent;
+  border: none;
 }

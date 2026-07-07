@@ -24,6 +24,10 @@ function App() {
     [risks, selectedCategories]
   );
 
+  function handleRiskSubmitted(newRisk) {
+    setRisks((prev) => [...prev, newRisk]);
+  }
+
   return (
     <div className="app-layout">
       <button
@@ -46,7 +50,7 @@ function App() {
             Nie udało się wczytać danych. Spróbuj odświeżyć stronę.
           </p>
         ) : (
-          <Map risks={filteredRisks} />
+          <Map risks={filteredRisks} onRiskSubmitted={handleRiskSubmitted} />
         )}
       </main>
     </div>

@@ -160,3 +160,224 @@
   color: #6b6375;
   margin-top: 6px;
 }
+
+.map-wrapper {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.report-risk-button {
+  position: fixed;
+  top: 16px;
+  left: 64px;
+  z-index: 1001;
+  height: 40px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--accent);
+  border: none;
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+
+.report-mode-hint {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1002;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: var(--shadow);
+}
+
+.report-mode-hint button {
+  padding: 4px 10px;
+  font-size: 13px;
+  color: var(--text-h);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.map-wrapper--report-mode .leaflet-container {
+  cursor: crosshair;
+}
+
+.pending-location-marker {
+  display: block;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(170, 59, 255, 0.35);
+  border: 2px dashed #aa3bff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.4);
+  animation: pending-marker-pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pending-marker-pulse {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.45;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0.9;
+  }
+}
+
+.report-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.report-modal {
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 20px;
+  color: var(--text);
+  background: var(--bg);
+  border-radius: 10px;
+  box-shadow: var(--shadow);
+}
+
+.report-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.report-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.report-modal-close {
+  font-size: 22px;
+  line-height: 1;
+  color: var(--text-h);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.report-modal-location {
+  font-size: 13px;
+  color: var(--text);
+  margin: 0 0 12px;
+}
+
+.report-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.report-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.report-modal-field select,
+.report-modal-field input,
+.report-modal-field textarea {
+  font: inherit;
+  font-weight: 400;
+  padding: 8px;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  resize: vertical;
+}
+
+.report-modal-char-count {
+  align-self: flex-end;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text);
+}
+
+.report-modal-error {
+  font-size: 12px;
+  font-weight: 400;
+  color: #c62828;
+}
+
+.report-modal-submit-error {
+  margin: 0;
+  padding: 8px;
+  font-size: 13px;
+  color: #c62828;
+  background: rgba(198, 40, 40, 0.08);
+  border: 1px solid rgba(198, 40, 40, 0.3);
+  border-radius: 6px;
+}
+
+.report-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.report-modal-actions button {
+  padding: 8px 16px;
+  font-size: 14px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.report-modal-actions button[type="submit"] {
+  color: #ffffff;
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.report-modal-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.report-modal-success {
+  padding: 24px 0;
+  text-align: center;
+  font-size: 15px;
+  color: #2e7d32;
+}

@@ -11,6 +11,7 @@ function App() {
     () => new Set(Object.keys(HAZARD_CATEGORIES))
   );
   const [error, setError] = useState(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   useEffect(() => {
     getRisks()
@@ -25,12 +26,20 @@ function App() {
 
   return (
     <div className="app-layout">
-      <aside className="app-sidebar">
+      <button
+        type="button"
+        className="hamburger-button"
+        onClick={() => setIsPanelOpen((prev) => !prev)}
+        aria-label="Przełącz panel kategorii zagrożeń"
+      >
+        ☰
+      </button>
+      <div className={`layer-panel ${isPanelOpen ? "layer-panel--open" : ""}`}>
         <LayerControls
           selectedCategories={selectedCategories}
           onChange={setSelectedCategories}
         />
-      </aside>
+      </div>
       <main className="app-map">
         {error ? (
           <p className="app-error">

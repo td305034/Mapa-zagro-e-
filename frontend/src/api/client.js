@@ -21,6 +21,7 @@ function formatApiError(body) {
     return detail
       .map((item) => (typeof item === "string" ? item : item.msg))
       .filter(Boolean)
+      .map((msg) => msg.replace(/^Value error,\s*/, ""))
       .join(" ");
   }
   return null;
@@ -35,7 +36,7 @@ export async function createRisk(payload) {
   if (!res.ok) {
     const body = await res.json().catch(() => null);
     throw new Error(
-      formatApiError(body) || `POST /risks/ failed: ${res.status}`
+      formatApiError(body) || `POST /risks/ failed: ${res.status}`,
     );
   }
   return res.json();

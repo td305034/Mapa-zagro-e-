@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.models import HazardCategory
 
@@ -18,8 +18,8 @@ class RiskBase(BaseModel):
     risk_type: str
     hazard_category: HazardCategory
     address: str | None = None
-    lat: float = Field(ge=49.9, le=50.5, description="Szerokość geograficzna w granicach powiatu")
-    lng: float = Field(ge=17.8, le=18.5, description="Długość geograficzna w granicach powiatu")
+    lat: float
+    lng: float
     weight: int = Field(default=1, ge=1, le=5)
 
 
@@ -29,17 +29,19 @@ class RiskBase(BaseModel):
         if not v.strip():
             raise ValueError("Kategoria nie może być pusta")
         return v.strip()
-    
-    @field_validator("lat", "lng")
-    @classmethod
-    def round_coordinates(cls, v):
-        return round(v, 7)
 
 
 class RiskCreate(RiskBase):
+    lat: float
+    lng: float
 
-    pass
-
+    @model_validator(mode="after")
+    def validate_location_in_powiat(self):
+        if not (50.16 <= self.lat <= 50.43) or not (17.9 <= self.lng <= 18.55):
+            raise ValueError("Zagrożenie powinno znajdować się w powiecie kędzierzyńsko-kozielskim.")
+        self.lat = round(self.lat, 7)
+        self.lng = round(self.lng, 7)
+        return self
 
 class RiskOut(RiskBase):
     id: int
@@ -52,7 +54,7 @@ class RiskOut(RiskBase):
 class RiskUpdate(BaseModel):
     main_category: str | None = None
     risk_type: str | None = None
-    lat: float | None = Field(default=None, ge=49.9, le=50.5)
-    lng: float | None = Field(default=None, ge=17.8, le=18.5)
+    lat: float | None = Field(default=None, ge=50.16, le=50.43)
+    lng: float | None = Field(default=None, ge=17.9, le=18.55)
     weight: int | None = Field(default=None, ge=1, le=5)
     source: str | None = None

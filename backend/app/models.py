@@ -12,6 +12,12 @@ class RiskStatus(str, enum.Enum):
     VERIFIED = "verified"
     REJECTED = "rejected"
 
+STATUS_WEIGHTS = {
+    RiskStatus.PENDING: 2,
+    RiskStatus.VERIFIED: 5,
+    RiskStatus.REJECTED: 1,
+}
+
 class HazardCategory(str, enum.Enum):
     FIRE = "fire"
     TRAFFIC = "traffic"

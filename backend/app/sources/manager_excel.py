@@ -9,7 +9,7 @@ import pandas as pd
 import requests
 from openlocationcode import openlocationcode as olc
 
-from app.models import RiskStatus
+from app.models import RiskStatus, STATUS_WEIGHTS
 from app.sources.base import DataSource
 from app.sources.hazard_mapping import get_hazard_category
 
@@ -18,8 +18,8 @@ logger = logging.getLogger(__name__)
 REFERENCE_LAT = 50.35
 REFERENCE_LNG = 18.17
 
-DEFAULT_WEIGHT = 1
 VERIFIED_STATUS = RiskStatus.VERIFIED.value
+DEFAULT_WEIGHT = STATUS_WEIGHTS[RiskStatus.VERIFIED]
 
 _PLACE_COORD_RE = re.compile(r"!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)")
 _MAP_VIEW_COORD_RE = re.compile(r"@(-?\d+\.\d+),(-?\d+\.\d+)")

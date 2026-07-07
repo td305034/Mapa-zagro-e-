@@ -20,7 +20,6 @@ class RiskBase(BaseModel):
     address: str | None = None
     lat: float
     lng: float
-    weight: int = Field(default=1, ge=1, le=5)
 
 
     @field_validator("main_category")
@@ -45,6 +44,7 @@ class RiskCreate(RiskBase):
 
 class RiskOut(RiskBase):
     id: int
+    weight: int
     source: str | None = None
     status: RiskStatus
     updated_at: datetime

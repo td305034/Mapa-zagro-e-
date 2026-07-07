@@ -32,6 +32,8 @@ def get_risks(
         query = query.filter(models.Risk.hazard_category.in_(hazard_category))
     if status is not None:
         query = query.filter(models.Risk.status == status)
+    else:
+        query = query.filter(models.Risk.status != models.RiskStatus.REJECTED)
 
     return query.all()
 
@@ -41,6 +43,7 @@ def create_risk(risk: schemas.RiskCreate, db: Session = Depends(get_db)):
     new_risk = models.Risk(
         **risk.model_dump(),
         status=models.RiskStatus.PENDING,
+        weight=models.STATUS_WEIGHTS[models.RiskStatus.PENDING],
         updated_at=datetime.utcnow(),
         source="Formularz zgłoszeń",
     )
@@ -76,6 +79,7 @@ def approve_risk(risk_id: int, db: Session = Depends(get_db)):
     if not risk:
         raise HTTPException(status_code=404, detail="Risk not found")
     risk.status = models.RiskStatus.VERIFIED
+    risk.weight = models.STATUS_WEIGHTS[models.RiskStatus.VERIFIED]
     try:
         db.commit()
     except Exception:

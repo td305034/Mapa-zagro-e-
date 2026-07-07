@@ -1,4 +1,3 @@
-# app/sources/manager_excel.py
 import logging
 import re
 from datetime import datetime
@@ -11,6 +10,7 @@ from openlocationcode import openlocationcode as olc
 
 from app.models import RiskStatus
 from app.sources.base import DataSource
+from app.sources.hazard_mapping import get_hazard_category
 
 logger = logging.getLogger(__name__)
 
@@ -26,13 +26,16 @@ VERIFIED_STATUS = RiskStatus.VERIFIED.value
 _PLACE_COORD_RE = re.compile(r"!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)")
 _MAP_VIEW_COORD_RE = re.compile(r"@(-?\d+\.\d+),(-?\d+\.\d+)")
 
+# "main_category" here is the renamed name of the sheet's
+# "Kategoria obiektu/miejsca" column — kept consistent with the model field
+# name used everywhere else in map_to_schema() below.
 _COLUMNS = ["record_number", "main_category", "object_name", "village", "address", "coordinates", "risk_type"]
 
 
 class ExcelRiskMapSource(DataSource):
     """Adapter for the seed `Mapa zagrożeń.xlsx` file."""
 
-    name = "Risk Map.xlsx"
+    name = "Mapa zagrożeń.xlsx"
 
     def __init__(self, file_path: str, sheet_name: str = "Arkusz1"):
         self.file_path = file_path
@@ -65,11 +68,27 @@ class ExcelRiskMapSource(DataSource):
             if pd.isna(row.lat) or pd.isna(row.lng):
                 logger.warning("Skipping row without resolvable coordinates: %s", row.risk_type)
                 continue
+
+            # Map the raw "Rodzaj zagrożenia" text to a HazardCategory BEFORE
+            # it gets combined with object_name below — the mapping keys are
+            # the original sheet values, not the display string.
+            hazard_category = get_hazard_category(row.risk_type)
+            if hazard_category is None:
+                # Fail fast rather than silently seeding a record with a
+                # missing/incorrect hazard_category. Better to fix the
+                # mapping table than insert bad data into the DB.
+                raise ValueError(
+                    f"No hazard_category mapping for risk_type: '{row.risk_type}' "
+                    f"(object: {row.object_name!r}, village: {row.village!r})"
+                )
+
             risk_type = row.risk_type
             if isinstance(row.object_name, str) and row.object_name:
                 risk_type = f"{row.object_name} - {risk_type}"
+
             records.append({
                 "main_category": row.main_category,
+                "hazard_category": hazard_category,
                 "risk_type": risk_type,
                 "lat": round(row.lat, 7),
                 "lng": round(row.lng, 7),

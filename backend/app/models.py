@@ -12,12 +12,22 @@ class RiskStatus(str, enum.Enum):
     VERIFIED = "verified"
     REJECTED = "rejected"
 
+class HazardCategory(str, enum.Enum):
+    FIRE = "fire"
+    TRAFFIC = "traffic"
+    FLOOD = "flood"
+    STRUCTURAL = "structural"
+    ENVIRONMENTAL = "environmental"
+    CRIME = "crime"
+    CRITICAL_SUPPLY = "critical_supply"
+
 class Risk(Base):
     __tablename__ = "risks"
 
     id = Column(Integer, primary_key=True)
     main_category = Column(String, nullable=False)
     risk_type = Column(String, nullable=False)
+    hazard_category = Column(SQLEnum(HazardCategory), nullable=True)
     lat = Column(Float, nullable=False)
     lng = Column(Float, nullable=False)
     weight = Column(Integer, default=1)

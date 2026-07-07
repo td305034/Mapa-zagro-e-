@@ -21,7 +21,6 @@ class RiskBase(BaseModel):
     lat: float = Field(ge=49.9, le=50.5, description="Szerokość geograficzna w granicach powiatu")
     lng: float = Field(ge=17.8, le=18.5, description="Długość geograficzna w granicach powiatu")
     weight: int = Field(default=1, ge=1, le=5)
-    source: str | None = None
 
 
     @field_validator("main_category")
@@ -38,11 +37,10 @@ class RiskCreate(RiskBase):
 
 
 class RiskOut(RiskBase):
-
     id: int
+    source: str | None = None
     status: RiskStatus
     updated_at: datetime
-
     model_config = ConfigDict(from_attributes=True)
 
 

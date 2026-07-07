@@ -187,6 +187,26 @@
   cursor: pointer;
 }
 
+.view-mode-button {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 1001;
+  height: 40px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-h);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+
 .report-mode-hint {
   position: fixed;
   top: 16px;

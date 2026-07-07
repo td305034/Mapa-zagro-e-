@@ -17,6 +17,7 @@ import { HAZARD_CATEGORIES } from "../config/hazardCategories";
 import { createClusterIcon } from "../utils/clusterIcon";
 import RiskPopup from "./RiskPopup";
 import ReportRiskModal from "./ReportRiskModal";
+import HeatmapLayer from "./HeatmapLayer";
 import powiatBoundaryRaw from "../assets/powiat-kedzierzynsko-kozielski.geojson?raw";
 
 const powiatBoundary = JSON.parse(powiatBoundaryRaw);
@@ -83,6 +84,7 @@ function MapClickHandler({ isReportMode, onLocationPicked }) {
 export default function Map({ risks, onRiskSubmitted }) {
   const [isReportMode, setIsReportMode] = useState(false);
   const [pendingLocation, setPendingLocation] = useState(null);
+  const [viewMode, setViewMode] = useState("markers");
 
   useEffect(() => {
     if (!isReportMode) return;
@@ -94,7 +96,9 @@ export default function Map({ risks, onRiskSubmitted }) {
   }, [isReportMode]);
 
   return (
-    <div className={`map-wrapper ${isReportMode ? "map-wrapper--report-mode" : ""}`}>
+    <div
+      className={`map-wrapper ${isReportMode ? "map-wrapper--report-mode" : ""}`}
+    >
       {!isReportMode && (
         <button
           type="button"
@@ -112,6 +116,17 @@ export default function Map({ risks, onRiskSubmitted }) {
           </button>
         </div>
       )}
+      <button
+        type="button"
+        className="view-mode-button"
+        onClick={() =>
+          setViewMode((prev) => (prev === "markers" ? "heatmap" : "markers"))
+        }
+      >
+        {viewMode === "markers"
+          ? "Pokaż heatmapę ryzyka"
+          : "Pokaż znaczniki ryzyka"}
+      </button>
       <MapContainer
         center={KEDZIERZYN_KOZLE_CENTER}
         zoom={DEFAULT_ZOOM}
@@ -141,28 +156,31 @@ export default function Map({ risks, onRiskSubmitted }) {
             interactive={false}
           />
         )}
-        <MarkerClusterGroup
-          chunkedLoading
-          showCoverageOnHover={false}
-          spiderfyOnMaxZoom={true}
-          maxClusterRadius={50}
-          iconCreateFunction={createClusterIcon}
-        >
-          {risks.map((risk) => (
-            <Marker
-              key={risk.id}
-              position={[risk.lat, risk.lng]}
-              icon={getIconForCategory(risk.hazard_category, risk.status)}
-              riskData={{ hazardCategory: risk.hazard_category }}
-            >
-              {!isReportMode && (
-                <Popup>
-                  <RiskPopup risk={risk} />
-                </Popup>
-              )}
-            </Marker>
-          ))}
-        </MarkerClusterGroup>
+        {viewMode === "markers" && (
+          <MarkerClusterGroup
+            chunkedLoading
+            showCoverageOnHover={false}
+            spiderfyOnMaxZoom={true}
+            maxClusterRadius={50}
+            iconCreateFunction={createClusterIcon}
+          >
+            {risks.map((risk) => (
+              <Marker
+                key={risk.id}
+                position={[risk.lat, risk.lng]}
+                icon={getIconForCategory(risk.hazard_category, risk.status)}
+                riskData={{ hazardCategory: risk.hazard_category }}
+              >
+                {!isReportMode && (
+                  <Popup>
+                    <RiskPopup risk={risk} />
+                  </Popup>
+                )}
+              </Marker>
+            ))}
+          </MarkerClusterGroup>
+        )}
+        {viewMode === "heatmap" && <HeatmapLayer risks={risks} />}
       </MapContainer>
       {pendingLocation && (
         <ReportRiskModal

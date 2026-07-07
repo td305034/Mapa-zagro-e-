@@ -89,6 +89,22 @@ def approve_risk(risk_id: int, db: Session = Depends(get_db)):
     return risk
 
 
+@router.patch("/{risk_id}/reject", response_model=schemas.RiskOut, dependencies=[Depends(verify_admin)])
+def reject_risk(risk_id: int, db: Session = Depends(get_db)):
+    risk = db.get(models.Risk, risk_id)
+    if not risk:
+        raise HTTPException(status_code=404, detail="Risk not found")
+    risk.status = models.RiskStatus.REJECTED
+    risk.weight = models.STATUS_WEIGHTS[models.RiskStatus.REJECTED]
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Nie udało się odrzucić zgłoszenia")
+    db.refresh(risk)
+    return risk
+
+
 @router.delete("/{risk_id}", dependencies=[Depends(verify_admin)])
 def delete_risk(risk_id: int, db: Session = Depends(get_db)):
     risk = db.get(models.Risk, risk_id)

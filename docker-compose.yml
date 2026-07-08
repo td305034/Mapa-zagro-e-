@@ -1,18 +1,37 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:16
-    container_name: mapa-db
-    restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: haslo
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: mapa_zagrozen
-    ports:
-      - "5432:5432"
     volumes:
       - mapa_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+    environment:
+      DATABASE_URL: postgresql://postgres:${DB_PASSWORD}@db:5432/mapa_zagrozen
+      ADMIN_API_KEY: ${ADMIN_API_KEY}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL: ${PUBLIC_API_URL}
+      target: production
+    depends_on:
+      - backend
 
 volumes:
   mapa_db_data:

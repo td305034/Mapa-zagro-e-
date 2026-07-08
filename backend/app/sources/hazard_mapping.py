@@ -34,6 +34,5 @@ def get_hazard_category(risk_type_raw: str) -> HazardCategory | None:
     key = normalize(risk_type_raw)
     hazard = RISK_TYPE_TO_HAZARD.get(key)
     if hazard is None:
-        # ważne: nie zgaduj, zaloguj brak dopasowania, żeby świadomie uzupełnić mapowanie
         print(f"UWAGA: brak mapowania hazard_category dla: '{key}'")
     return hazard

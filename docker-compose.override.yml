@@ -3,11 +3,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./backend:/app # mapowanie kodu na żywo, żeby zmiany widzieć bez rebuildu
-    # `command:` NIE nadpisuje ENTRYPOINT (tylko CMD), a entrypoint.sh nie
-    # przekazuje dalej $@ — trzeba nadpisać cały entrypoint, żeby --reload
-    # faktycznie zadziałało. To też pomija migracje przy starcie w dev:
-    # uruchamiaj je ręcznie przez `docker compose exec backend alembic upgrade head`.
+      - ./backend:/app
     entrypoint:
       [
         "uvicorn",

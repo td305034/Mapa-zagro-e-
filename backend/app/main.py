@@ -13,7 +13,7 @@ from fastapi.responses import JSONResponse
 
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Risk Map API")
+app = FastAPI(root_path="/api", title="Risk Map API")
 
 app.include_router(risks_router)
 
